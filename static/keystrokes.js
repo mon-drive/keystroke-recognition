@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("keystrokeForm");
     form.addEventListener("submit", (e) => {
         e.preventDefault(); // Prevent the form from reloading the page
-        fetch("/experiment", {
+        fetch("/experimentGP", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

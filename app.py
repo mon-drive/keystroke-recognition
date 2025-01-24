@@ -867,8 +867,8 @@ def extract_from_buffalo():
 
     convert_txt_to_csv(base_path, output_csv)
 
-@app.route("/experiment", methods=["POST"])
-def execute_experiment():
+@app.route("/experimentGP", methods=["POST"])
+def execute_experimentGP():
     # original data
     extract_from_buffalo()
     original_set = "./dataset/keystroke_baseline_task1.csv"
