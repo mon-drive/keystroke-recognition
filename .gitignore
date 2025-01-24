@@ -1,2 +1,7 @@
 /dataset
+<<<<<<< Updated upstream
 /__pycache__
+=======
+/.venv
+/__pycache__
+>>>>>>> Stashed changes

@@ -45,6 +45,7 @@ def keystrokes_to_digraphs(keystroke_array):
     digraphs = []
     i = 0
     while i < len(keystroke_array) - 1:
+        print(keystroke_array[i][0] + "-" + keystroke_array[i + 1][0])
         digraphs.append(
             (
                 str(keystroke_array[i][0]) + "-" + str(keystroke_array[i + 1][0]),
@@ -307,6 +308,9 @@ class UserProfile:
     def get_samples(self) -> list[Sample]:
         out = [self.get_sample(i) for i in range(self.get_sample_count())]
         return out
+    
+    def get_expected_keys(self) -> list[str]:
+        return list(self.get_samples()[0].get_digraphs().keys())
 
     def m_without_x(self,x) -> dict[str, float]:
         if x > 14:
@@ -314,29 +318,24 @@ class UserProfile:
 
         samples: list[Sample] = self.get_samples()
 
+        filtered_samples = [sample for i, sample in enumerate(samples) if i != x]
+
         distances: dict[str, list[float]] = defaultdict(list)
 
         # calculate distances from each set in profile
-        count_combinations = 0
-        for i, sample_A in enumerate(samples):
-            if i == x:
-                continue
-            count_combinations += 1
-            for j, sample_B in enumerate(samples):
-                if j == x:
-                    continue
+        for i, sample_A in enumerate(filtered_samples):
+            for j, sample_B in enumerate(filtered_samples):
                 # distance from same sample does not have to be calculated
                 if j == i:
                     assert sample_A == sample_B
                     continue
-
+                    
                 # calculate distance between two samples
                 distance_combinations: dict[str, float] = d(sample_A, sample_B)
-
+        
                 # append each distance to distances
                 for key, value in distance_combinations.items():
                     distances[key].append(value)
-
 
         return {k: np.array(v).mean() for k, v in distances.items()}
 
@@ -583,8 +582,9 @@ def authentification(mean_distances: dict[str, list[float]], measure: str, attac
 # user authentification for attacker sample belonging to attacked user
 def authentification_legitimate(mean_distances: dict[str, list[float]], measure: str, attacked_user: UserProfile, attacked_index: int, sample_index: int) -> bool:
     # get the mean distance of the UserProfile
-    for i in attacked_user.m_without_x(sample_index).keys():
-        print(i)
+    if attacked_user.get_sample_count() <= 2:
+        return False
+
     m_A = attacked_user.m_without_x(sample_index)[measure]
 
     # get the mean distance from UserProfile to sample
