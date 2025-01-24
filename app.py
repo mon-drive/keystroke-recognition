@@ -845,7 +845,7 @@ def convert_txt_to_csv(base_path, output_csv):
             if file_name.endswith(".txt"):
                 try:
                     user_id = int(file_name[:3])  # ID utente: i primi 3 caratteri
-                    task_id = int(file_name[5])  # Task ID: il quarto carattere
+                    task_id = int(file_name[5])  # Task ID: il sesto carattere
                     if 1 <= user_id <= 75 and task_id == 1:  # Solo utenti baseline e task 1
                         file_path = os.path.join(session_path, file_name)
                         df = process_txt_file(file_path, user_id, session_id+1)
