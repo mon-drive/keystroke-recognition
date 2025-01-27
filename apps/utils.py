@@ -1,5 +1,11 @@
 import pandas as pd
 import os
+from flask import jsonify
+from apps.GunettiPicardi import create_user_profiles, experiment
+
+data_folder = "dataset"
+
+filter = [13, 18, 26]
 
 def process_txt_file(file_path, user_id, session_id):
     """Legge un file txt e restituisce un DataFrame con i dati processati."""
@@ -50,3 +56,16 @@ def extract_from_buffalo():
     output_csv = "./dataset/keystroke_baseline_task1.csv"
 
     convert_txt_to_csv(base_path, output_csv)
+
+def execute_experimentGP():
+    # original data
+    extract_from_buffalo()
+    original_set = "./dataset/keystroke_baseline_task1.csv"
+    original_data_profiles = f"./{data_folder}/original_data_profiles"
+
+    print("Original data profiles: ", original_data_profiles)
+
+    if not os.path.isfile(original_data_profiles):
+        create_user_profiles(original_set, original_data_profiles)
+
+    experiment(original_data_profiles, original_data_profiles, "original", filter)

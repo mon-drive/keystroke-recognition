@@ -1,10 +1,8 @@
 import numpy as np
 from collections import defaultdict
-from typing import TypeVar
+from typing import Self
 import pickle
 import pandas as pd
-
-Self = TypeVar('Self')
 
 data_folder = "dataset"
 

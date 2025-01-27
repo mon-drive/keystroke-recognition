@@ -1,7 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-
-from apps.utils import extract_from_buffalo
-from apps.GunettiPicardi import create_user_profiles, experiment
+from apps.utils import execute_experimentGP
 import os
 
 main = Blueprint('main', __name__)
@@ -29,16 +27,7 @@ def keystrokes():
     return jsonify({"status": "success"})
 
 @main.route("/experimentGP", methods=["POST"])
-def execute_experimentGP():
+def TestBuffaloGP():
     # original data
-    extract_from_buffalo()
-    original_set = "./dataset/keystroke_baseline_task1.csv"
-    original_data_profiles = f"./{data_folder}/original_data_profiles"
-
-    print("Original data profiles: ", original_data_profiles)
-
-    if not os.path.isfile(original_data_profiles):
-        create_user_profiles(original_set, original_data_profiles)
-
-    experiment(original_data_profiles, original_data_profiles, "original", filter)
+    execute_experimentGP()
     return jsonify({"status": "success"})
