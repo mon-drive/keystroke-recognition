@@ -1,11 +1,13 @@
 import pandas as pd
 import os
-from flask import jsonify
 from apps.GunettiPicardi import create_user_profiles, experiment
+import csv
+from collections import defaultdict
 
 data_folder = "dataset"
 
 filter = [13, 18, 26]
+
 
 def process_txt_file(file_path, user_id, session_id):
     """Legge un file txt e restituisce un DataFrame con i dati processati."""
@@ -69,3 +71,78 @@ def execute_experimentGP():
         create_user_profiles(original_set, original_data_profiles)
 
     experiment(original_data_profiles, original_data_profiles, "original", filter)
+
+def process_keystrokes_with_repetitionsManhattan(input_path: str, output_csv: str):
+    data = []  # Lista per raccogliere i dati da tutti i file
+    repetitions = defaultdict(int)  # Conta le ripetizioni per ogni utente
+
+    # Naviga nella cartella e sottocartelle
+    for root, dirs, files in os.walk(input_path):
+        for file in files:
+            # Verifica che sia un file txt con il formato richiesto
+            if file.endswith(".txt") and len(file) >= 6:
+                user_id = file[:3]
+                session = file[3]
+                keyboard_type = file[4]
+                task = file[5]
+
+                # Filtra i file con task=1
+                if task == "1":
+                    file_path = os.path.join(root, file)
+
+                    # Elabora il file
+                    with open(file_path, "r") as f:
+                        lines = f.readlines()
+
+                    # Parsing dei dati
+                    events = []
+                    for line in lines:
+                        parts = line.strip().split()
+                        if len(parts) == 3:
+                            key, event_type, timestamp = parts
+                            events.append({"key": key, "event_type": event_type, "timestamp": int(timestamp)})
+
+                    # Calcolo H, DD, UD e aggiunta delle ripetizioni
+                    hold_times = {}
+                    for i in range(len(events) - 1):
+                        current = events[i]
+                        next_event = events[i + 1]
+
+                        if current["event_type"] == "KeyDown" and next_event["event_type"] == "KeyUp" and current["key"] == next_event["key"]:
+                            # Calcolo del hold time H.<key>
+                            hold_time = (next_event["timestamp"] - current["timestamp"]) / 1000.0  # Decimale
+                            hold_times[current["key"]] = hold_time
+
+                        if current["event_type"] == "KeyUp" and next_event["event_type"] == "KeyDown":
+                            # Calcolo del dwell time DD.<key1>.<key2>
+                            dwell_time = (next_event["timestamp"] - current["timestamp"]) / 1000.0  # Decimale
+
+                            # Calcolo dell'up-down time UD.<key1>.<key2>
+                            up_down_time = (
+                                (next_event["timestamp"] - events[i - 1]["timestamp"]) / 1000.0
+                                if i > 0 else None
+                            )
+
+                            # Incrementa il contatore per il tasto corrente
+                            repetitions[user_id] += 1
+
+                            # Aggiungi i risultati
+                            if hold_times.get(current["key"], None) is None:
+                                continue
+                            data.append({
+                                "subject": user_id,
+                                "key": current["key"],
+                                "H": hold_times.get(current["key"], None),
+                                "UD": up_down_time,
+                                "DD": dwell_time
+                            })
+
+    # Scrivi il file CSV
+    with open(output_csv, 'w', newline='') as csvfile:
+        fieldnames = [
+            "subject", "key", "H", "UD", "DD"
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in data:
+            writer.writerow(row)
