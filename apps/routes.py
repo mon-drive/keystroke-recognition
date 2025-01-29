@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan
 from apps.manhattan import ManhattanDetector
 import os
-import pandas
+import pandas as pd
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
@@ -38,6 +38,35 @@ def keystrokes():
 def TestBuffaloGP():
     # original data
     execute_experimentGP()
+
+    #open file
+    auth_file = "dataset/original_authentification_data.csv"
+    df = pd.read_csv(auth_file)
+
+    # Define legitimate users (1) and imposters (0)
+    y_true = (df["FalseRejectAttempts"] > 0).astype(int)  # 1 for legitimate users
+    y_true[df["FalseAcceptError"] > 0] = 0  # 0 for imposters
+
+    # Use FalseReject1 as the decision score
+    y_scores = df["FalseReject1"].values  
+
+    # Compute ROC curve
+    fpr, tpr, _ = roc_curve(y_true, y_scores)
+    roc_auc = auc(fpr, tpr)
+
+    # Plot ROC curve
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
+    plt.plot([0, 1], [0, 1], color="gray", linestyle="--")  # Diagonal reference line
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title("ROC Curve")
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    plt.show()
+
     return jsonify({"status": "success"})
 
 @main.route("/experimentManhattan", methods=["POST"])
@@ -47,7 +76,7 @@ def TestBuffaloManhattan():
     output_csv = "dataset/output_Manhattan.csv" 
     process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
 
-    data1 = pandas.read_csv(output_csv)
+    data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
     print("Subjects: ")
     fpr1_1, tpr1_1, thresholds1_1 = ManhattanDetector(subjects1, data1).evaluateSet1()
