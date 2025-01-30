@@ -100,32 +100,35 @@ def TestBuffaloManhattan():
 # Train & Evaluate GMM on Buffalo Dataset
 @main.route("/experimentGMM", methods=["POST"])
 def TestBuffaloGMM():
-    # Extract data from Buffalo dataset
-    extract_from_buffalo()
-    keystroke_csv = f"{data_folder}/keystroke_baseline_task1.csv"
-    
-    # Load data
-    df = pd.read_csv(keystroke_csv)
-    users = df["user"].unique()
-    
-    # Train GMM models
+    """Processes Buffalo fixed-text data and trains GMM authentication models."""
+
+    # Step 1: Extract data from Buffalo dataset (Fixed Text)
+    input_path = "./dataset"
+    output_csv = "./dataset/keystroke_fixed_text_gmm.csv"
+    process_keystrokes_for_gmm(input_path, output_csv)  # Uses the new function
+
+    # Step 2: Load the extracted CSV
+    df = pd.read_csv(output_csv)
+    users = df["subject"].unique()  # Users are identified by 'subject'
+
+    # Step 3: Train GMM models
     user_models = train_gmm_model(df, users)
 
-    # Authenticate users & compute ROC
+    # Step 4: Authenticate users & compute ROC curve
     y_true, y_scores = authenticate_keystrokes(df, user_models)
 
-    # Compute ROC curve & AUC
+    # Compute ROC Curve and AUC
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     roc_auc = auc(fpr, tpr)
     eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
 
-    # Plot ROC
+    # Step 5: Plot ROC Curve
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC (AUC = {roc_auc:.2f}, EER = {eer:.2f})")
     plt.plot([0, 1], [0, 1], color="gray", linestyle="--")
     plt.xlabel("False Positive Rate (FPR)")
     plt.ylabel("True Positive Rate (TPR)")
-    plt.title("ROC Curve - GMM Authentication")
+    plt.title("ROC Curve - GMM Authentication (Fixed Text)")
     plt.legend(loc="lower right")
     plt.grid(True)
     plt.show()
