@@ -15,6 +15,7 @@ def extract_keystroke_features(df):
 
 def train_gmm_model(df, users):
     """Trains a Gaussian Mixture Model for each user."""
+    print("start")
     user_models = {}
     df = extract_keystroke_features(df)
 
