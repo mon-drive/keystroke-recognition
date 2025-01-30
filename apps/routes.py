@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
 from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm
 from apps.manhattan import ManhattanDetector
-from apps.gmm import train_gmm_model,authenticate_keystrokes
+from apps.gmm import train_gmm_model
 import os
 import pandas as pd
 from scipy.optimize import brentq
@@ -101,35 +101,27 @@ def TestBuffaloManhattan():
 @main.route("/experimentGMM", methods=["POST"])
 def TestBuffaloGMM():
     """Processes Buffalo fixed-text data and trains GMM authentication models."""
+    
+    input_path = "dataset"   # your base folder
+    output_csv = "dataset/output_gmm.csv"
+    process_keystrokes_for_gmm(input_path, output_csv)
 
-    # Step 1: Extract data from Buffalo dataset (Fixed Text)
-    input_path = "./dataset"
-    output_csv = "./dataset/keystroke_fixed_text_gmm.csv"
-    process_keystrokes_for_gmm(input_path, output_csv)  # Uses the new function
+    # 2. Train GMM and evaluate
+    fpr, tpr, thresholds = train_gmm_model(output_csv)
 
-    # Step 2: Load the extracted CSV
-    df = pd.read_csv(output_csv)
-    users = df["subject"].unique()  # Users are identified by 'subject'
+    # 3. Compute EER
+    # The EER is where FPR == 1 - TPR. We can approximate with brentq:
+    eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
 
-    # Step 3: Train GMM models
-    user_models = train_gmm_model(df, users)
-
-    # Step 4: Authenticate users & compute ROC curve
-    y_true, y_scores = authenticate_keystrokes(df, user_models)
-
-    # Compute ROC Curve and AUC
-    fpr, tpr, _ = roc_curve(y_true, y_scores)
+    # 4. Plot and display AUC, EER
     roc_auc = auc(fpr, tpr)
-    eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
-
-    # Step 5: Plot ROC Curve
     plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC (AUC = {roc_auc:.2f}, EER = {eer:.2f})")
-    plt.plot([0, 1], [0, 1], color="gray", linestyle="--")
-    plt.xlabel("False Positive Rate (FPR)")
-    plt.ylabel("True Positive Rate (TPR)")
-    plt.title("ROC Curve - GMM Authentication (Fixed Text)")
-    plt.legend(loc="lower right")
+    plt.plot(fpr, tpr, label=f"GMM - AUC: {roc_auc:.3f}, EER: {eer:.3f}")
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("ROC Curve - GMM Keystroke Dynamics")
+    plt.legend(loc="best")
     plt.grid(True)
     plt.show()
 
