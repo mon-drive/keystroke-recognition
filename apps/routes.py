@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,extract_from_buffalo
+from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm
 from apps.manhattan import ManhattanDetector
 from apps.gmm import train_gmm_model,authenticate_keystrokes
 import os
