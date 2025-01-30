@@ -95,3 +95,38 @@ def TestBuffaloManhattan():
 
 
     return jsonify({"status": "success"})
+
+# Train & Evaluate GMM on Buffalo Dataset
+@main.route("/experimentGMM", methods=["POST"])
+def TestBuffaloGMM():
+    # Extract data from Buffalo dataset
+    extract_from_buffalo()
+    keystroke_csv = f"{data_folder}/keystroke_baseline_task1.csv"
+    
+    # Load data
+    df = pd.read_csv(keystroke_csv)
+    users = df["user"].unique()
+    
+    # Train GMM models
+    user_models = train_gmm_model(df, users)
+
+    # Authenticate users & compute ROC
+    y_true, y_scores = authenticate_keystrokes(df, user_models)
+
+    # Compute ROC curve & AUC
+    fpr, tpr, _ = roc_curve(y_true, y_scores)
+    roc_auc = auc(fpr, tpr)
+    eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
+
+    # Plot ROC
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC (AUC = {roc_auc:.2f}, EER = {eer:.2f})")
+    plt.plot([0, 1], [0, 1], color="gray", linestyle="--")
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title("ROC Curve - GMM Authentication")
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    plt.show()
+
+    return jsonify({"status": "success", "AUC": roc_auc, "EER": eer})
