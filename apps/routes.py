@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify
-from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan
+from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm
 from apps.manhattan import ManhattanDetector
+from apps.gmm import train_gmm_model
 import os
 import pandas as pd
 from scipy.optimize import brentq
@@ -95,3 +96,33 @@ def TestBuffaloManhattan():
 
 
     return jsonify({"status": "success"})
+
+# Train & Evaluate GMM on Buffalo Dataset
+@main.route("/experimentGMM", methods=["POST"])
+def TestBuffaloGMM():
+    """Processes Buffalo fixed-text data and trains GMM authentication models."""
+    
+    input_path = "dataset"   # your base folder
+    output_csv = "dataset/output_gmm.csv"
+    process_keystrokes_for_gmm(input_path, output_csv)
+
+    # 2. Train GMM and evaluate
+    fpr, tpr, thresholds = train_gmm_model(output_csv)
+
+    # 3. Compute EER
+    # The EER is where FPR == 1 - TPR. We can approximate with brentq:
+    eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+
+    # 4. Plot and display AUC, EER
+    roc_auc = auc(fpr, tpr)
+    plt.figure(figsize=(8, 6))
+    plt.plot(fpr, tpr, label=f"GMM - AUC: {roc_auc:.3f}, EER: {eer:.3f}")
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title("ROC Curve - GMM Keystroke Dynamics")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.show()
+
+    return jsonify({"status": "success", "AUC": roc_auc, "EER": eer})
