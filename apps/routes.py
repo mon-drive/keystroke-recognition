@@ -107,7 +107,7 @@ def TestBuffaloGMM():
     process_keystrokes_for_gmm(input_path, output_csv)
 
     # 2. Train GMM and evaluate
-    fpr, tpr, thresholds = train_gmm_model(output_csv)
+    fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)
 
     # 3. Compute EER
     # The EER is where FPR == 1 - TPR. We can approximate with brentq:
