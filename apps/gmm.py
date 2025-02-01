@@ -298,12 +298,17 @@ def train_gmm_model(
     fpr_list = []
     tpr_list = []
 
+    print("Threshold | FAR  | FRR")
+    print("----------------------")
+
     for thr in thresholds:
         FAR = model.compute_FAR(imposter_scores, thr)  # false accept rate
         FRR = model.compute_FRR(genuine_scores, thr)   # false reject rate
 
         fpr_list.append(FAR)
         tpr_list.append(1.0 - FRR)
+
+        print(f"{thr:.2f}      | {FAR:.4f} | {FRR:.4f}")
 
     fpr = np.array(fpr_list)
     tpr = np.array(tpr_list)
