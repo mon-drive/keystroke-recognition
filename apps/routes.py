@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm
 from apps.manhattan import ManhattanDetector
 from apps.gmm import train_gmm_model
+from apps.mahalanobis import MahalanobisDetector
 import os
 import pandas as pd
 from scipy.optimize import brentq
@@ -126,3 +127,30 @@ def TestBuffaloGMM():
     plt.show()
 
     return jsonify({"status": "success", "AUC": roc_auc, "EER": eer})
+
+@main.route("/experimentMahalanobis", methods=["POST"])
+def TestBuffaloMahalanobis():
+    # original data
+    input_path = "dataset"
+    output_csv = "dataset/output_Mahalanobis.csv" 
+    process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+
+    data1 = pd.read_csv(output_csv)
+    subjects1 = data1["subject"].unique()
+    print("Subjects: ")
+    fpr1_1, tpr1_1, thresholds1_1 = MahalanobisDetector(subjects1, data1).evaluateSet1()
+    eer1_1 = brentq(lambda x : 1. - x - interp1d(fpr1_1, tpr1_1)(x), 0., 1.)
+    print("EER1_1: ", eer1_1)
+
+    plt.figure(figsize = (10,5))
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Mahalanobis'.format(auc(fpr1_1, tpr1_1), eer1_1))
+
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title('ROC curve')
+    plt.legend(loc='best')
+    plt.show()
+
+
+    return jsonify({"status": "success"})
