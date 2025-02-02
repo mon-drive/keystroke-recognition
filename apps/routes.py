@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm
+from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm, convert_xlsx_to_csv
 from apps.manhattan import ManhattanDetector
 from apps.gmm import train_gmm_model
 from apps.mahalanobis import MahalanobisDetector
@@ -76,7 +76,13 @@ def TestBuffaloManhattan():
     # original data
     input_path = "dataset"
     output_csv = "dataset/output_Manhattan.csv" 
-    process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+    #process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+
+    xls1 = "dataset/fullname_userInformation.xlsx"
+    xls2 = "dataset/email_userInformation.xlsx"
+    xls3 = "dataset/phone_userInformation.xlsx"
+
+    convert_xlsx_to_csv([xls1], output_csv)
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
@@ -105,7 +111,14 @@ def TestBuffaloGMM():
     
     input_path = "dataset"   # your base folder
     output_csv = "dataset/output_gmm.csv"
-    process_keystrokes_for_gmm(input_path, output_csv)
+    #process_keystrokes_for_gmm(input_path, output_csv)
+
+    xls1 = "dataset/fullname_userInformation.xlsx"
+    xls2 = "dataset/email_userInformation.xlsx"
+    xls3 = "dataset/phone_userInformation.xlsx"
+
+    convert_xlsx_to_csv([xls3], output_csv)
+
 
     # 2. Train GMM and evaluate
     fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)
@@ -133,7 +146,13 @@ def TestBuffaloMahalanobis():
     # original data
     input_path = "dataset"
     output_csv = "dataset/output_Mahalanobis.csv" 
-    process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+    #process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+
+    xls1 = "dataset/fullname_userInformation.xlsx"
+    xls2 = "dataset/email_userInformation.xlsx"
+    xls3 = "dataset/phone_userInformation.xlsx"
+
+    convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()

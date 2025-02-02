@@ -3,6 +3,8 @@ from collections import defaultdict
 from typing import Self
 import pickle
 import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
 
 data_folder = "dataset"
 
@@ -788,3 +790,33 @@ def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, ou
 
     class_results_df.to_csv(f"./{data_folder}/" + output + "_classification_data.csv", index=False)
     auth_results_df.to_csv(f"./{data_folder}/" + output + "_authentification_data.csv", index=False)
+
+    dist = class_results[0]
+
+    Total_Genuine_Attempts = dist["FalseRejectAttempts"]
+    Total_Impostor_Attempts = dist["FalseAcceptAttempts"]
+
+    FAE = dist["FalseAcceptError"]
+    FRE = dist["FalseRejectError"]
+
+    FAR = FAE / Total_Impostor_Attempts
+    FRR = FRE / Total_Genuine_Attempts
+
+    EER = (FAR + FRR) / 2
+
+    print(f"False Acceptance Rate (FAR): {FAR}")
+    print(f"False Rejection Rate (FRR): {FRR}")
+    print(f"Equal Error Rate (EER): {EER}")
+
+    # ROC Curve
+    plt.figure()
+    plt.plot([FAR], [1 - FRR], marker='o', label="ROC Curve")
+    plt.plot([0, 1], [0, 1], linestyle='--', label="Random Classifier")
+    plt.scatter(FAR, 1 - FRR, color='red', label=f"EER = {EER:.3f}")
+    plt.xlabel("False Acceptance Rate (FAR)")
+    plt.ylabel("1 - False Rejection Rate (1 - FRR)")
+    plt.title("ROC Curve")
+    plt.legend()
+    plt.grid()
+    plt.show()
+

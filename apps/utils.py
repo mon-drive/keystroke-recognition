@@ -227,3 +227,24 @@ def process_keystrokes_for_gmm(input_path: str, output_csv: str):
             writer.writerow(row)
 
     print(f"Processed fixed-text keystroke data saved: {output_csv}")
+
+def convert_xlsx_to_csv(input_files, output_file):
+    dataframes = []
+    
+    for file in input_files:
+        df = pd.read_excel(file, engine='openpyxl')
+        df_converted = pd.DataFrame({
+            'subject': df['id'],
+            'key': df['single_alphabet'],
+            'H': df['Dwell_time'] / 1000,         # Dwell time in secondi
+            'UD': df['Flight_time'] / 1000,       # Flight time (Up-Down) in secondi
+            'DD': df['Interval_time'] / 1000      # Interval time (Down-Down) in secondi
+        })
+        dataframes.append(df_converted)
+    
+    # Concatena tutti i DataFrame
+    final_df = pd.concat(dataframes, ignore_index=True)
+    
+    # Salva il CSV
+    final_df.to_csv(output_file, index=False)
+    print(f"File salvato come {output_file}")
