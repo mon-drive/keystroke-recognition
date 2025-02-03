@@ -82,8 +82,8 @@ def TestBuffaloGP():
     image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
 
     # Plot ROC curve
-    plt.figure(figsize=(8, 6))
-    plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
+    plt.figure(figsize=(8, 8))
+    plt.plot(fpr, tpr, color="red", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
     plt.plot([0, 1], [0, 1], color="gray", linestyle="--")  # Diagonal reference line
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -112,7 +112,7 @@ def TestBuffaloManhattan():
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
-        convert_xlsx_to_csv([xls1], output_csv)
+        convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
@@ -125,7 +125,7 @@ def TestBuffaloManhattan():
     image_filename = f"{uuid.uuid4()}.png"
     image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
 
-    plt.figure(figsize = (10,5))
+    plt.figure(figsize = (8,8))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Manhattan'.format(auc(fpr1_1, tpr1_1), eer1_1))
 
@@ -154,7 +154,7 @@ def TestBuffaloGMM():
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
-        convert_xlsx_to_csv([xls3], output_csv)
+        convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
 
     # 2. Train GMM and evaluate
     fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)
@@ -170,7 +170,7 @@ def TestBuffaloGMM():
     image_filename = f"{uuid.uuid4()}.png"
     image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8, 8))
     plt.plot(fpr, tpr, label=f"GMM - AUC: {roc_auc:.3f}, EER: {eer:.3f}")
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel("False Positive Rate")
@@ -193,13 +193,11 @@ def TestBuffaloMahalanobis():
     
     if(dataset == "Buffalo"):
         process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
-        print("1")
     else: # second dataset
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
         convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
-        print("2")
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
@@ -212,7 +210,7 @@ def TestBuffaloMahalanobis():
     image_filename = f"{uuid.uuid4()}.png"
     image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
 
-    plt.figure(figsize = (10,5))
+    plt.figure(figsize = (8,8))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Mahalanobis'.format(auc(fpr1_1, tpr1_1), eer1_1))
 
