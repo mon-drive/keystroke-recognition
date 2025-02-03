@@ -8,18 +8,39 @@
 </head>
 <body>
     <h1>Keystroke Recognition</h1>
+    <h3>Select Dataset</h3>
+    <form id="dataset_select" method="POST" action="/dataset_selection">
+        <select name="dropdown_dataset" onchange="this.form.submit()">
+            <option value="" disabled selected>Choose here</option>
+            <option value="Buffalo">Buffalo</option>
+            <option value="Nanglae-Bhattarakosol">Nanglae-Bhattarakosol</option>
+        </select>
+    </form>
+    
+    <!-- {% if selected_value %}
+        <p>Selected: {{ selected_value }}</p>
+    {% endif %} -->
+
+    <h3>Select Algorithm</h3>
     <form id="keystrokeForm" action="/experimentGP" method="POST">
         <label for="inputArea">Type: I cani sono animali fedeli e intelligenti. Sono ottimi compagni per le persone e aiutano in molte attività quotidiane.</label><br>
         <textarea id="inputArea" rows="10" cols="50"></textarea><br><br>
+        <input type="hidden" name="selected_dataset" value="{{ selected_value }}">
         <button type="submit">Submit Gunetti Picardi</button>
     </form>
+    
     <form id="keystrokeForm" action="/experimentManhattan" method="POST">
+        <input type="hidden" name="selected_dataset" value="{{ selected_value }}">
         <button type="submit">Submit Manhattan</button>
-    </form>
+    </form> 
+
     <form id="keystrokeForm" action="/experimentMahalanobis" method="POST">
+        <input type="hidden" name="selected_dataset" value="{{ selected_value }}">
         <button type="submit">Submit Mahalanobis</button>
     </form>
+    
     <form id="keystrokeForm" action="/experimentGMM" method="POST">
+        <input type="hidden" name="selected_dataset" value="{{ selected_value }}"> 
         <button type="submit">Submit Gaussian Mixture Model</button>
     </form>
     <script src="/static/keystrokes.js"></script>

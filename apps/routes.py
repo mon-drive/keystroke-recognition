@@ -21,6 +21,15 @@ data_folder = "dataset"
 def home():
     return render_template("index.html")
 
+# Route to handle dataset selection
+@main.route("/dataset_selection", methods=["POST"])
+def dataset_selection():
+    dataset = request.form.get("dropdown_dataset")
+    print(f"Dataset selected: {dataset}")  # Debugging
+
+    return render_template("index.html", selected_value=dataset)
+
+
 # Route to handle keystroke data
 @main.route("/keystrokes", methods=["POST"])
 def keystrokes():
@@ -64,7 +73,7 @@ def TestBuffaloGP():
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate (FPR)")
     plt.ylabel("True Positive Rate (TPR)")
-    plt.title("ROC Curve")
+    plt.title("ROC Curve - GP " + dataset)
     plt.legend(loc="lower right")
     plt.grid(True)
     plt.show()
@@ -76,13 +85,16 @@ def TestBuffaloManhattan():
     # original data
     input_path = "dataset"
     output_csv = "dataset/output_Manhattan.csv" 
-    #process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
 
-    xls1 = "dataset/fullname_userInformation.xlsx"
-    xls2 = "dataset/email_userInformation.xlsx"
-    xls3 = "dataset/phone_userInformation.xlsx"
+    dataset = request.form.get("selected_dataset")
 
-    convert_xlsx_to_csv([xls1], output_csv)
+    if(dataset == "Buffalo"):
+        process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+    else: # second dataset
+        xls1 = "dataset/fullname_userInformation.xlsx"
+        xls2 = "dataset/email_userInformation.xlsx"
+        xls3 = "dataset/phone_userInformation.xlsx"
+        convert_xlsx_to_csv([xls1], output_csv)
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
@@ -111,14 +123,16 @@ def TestBuffaloGMM():
     
     input_path = "dataset"   # your base folder
     output_csv = "dataset/output_gmm.csv"
-    #process_keystrokes_for_gmm(input_path, output_csv)
 
-    xls1 = "dataset/fullname_userInformation.xlsx"
-    xls2 = "dataset/email_userInformation.xlsx"
-    xls3 = "dataset/phone_userInformation.xlsx"
+    dataset = request.form.get("selected_dataset")
 
-    convert_xlsx_to_csv([xls3], output_csv)
-
+    if(dataset == "Buffalo"):
+        process_keystrokes_for_gmm(input_path, output_csv)
+    else: # second dataset
+        xls1 = "dataset/fullname_userInformation.xlsx"
+        xls2 = "dataset/email_userInformation.xlsx"
+        xls3 = "dataset/phone_userInformation.xlsx"
+        convert_xlsx_to_csv([xls3], output_csv)
 
     # 2. Train GMM and evaluate
     fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)
@@ -134,7 +148,7 @@ def TestBuffaloGMM():
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve - GMM Keystroke Dynamics")
+    plt.title("ROC Curve - GMM " + dataset)
     plt.legend(loc="best")
     plt.grid(True)
     plt.show()
@@ -146,13 +160,18 @@ def TestBuffaloMahalanobis():
     # original data
     input_path = "dataset"
     output_csv = "dataset/output_Mahalanobis.csv" 
-    #process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
 
-    xls1 = "dataset/fullname_userInformation.xlsx"
-    xls2 = "dataset/email_userInformation.xlsx"
-    xls3 = "dataset/phone_userInformation.xlsx"
-
-    convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
+    dataset = request.form.get("selected_dataset")
+    
+    if(dataset == "Buffalo"):
+        process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+        print("1")
+    else: # second dataset
+        xls1 = "dataset/fullname_userInformation.xlsx"
+        xls2 = "dataset/email_userInformation.xlsx"
+        xls3 = "dataset/phone_userInformation.xlsx"
+        convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
+        print("2")
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
@@ -167,7 +186,7 @@ def TestBuffaloMahalanobis():
 
     plt.xlabel('False positive rate')
     plt.ylabel('True positive rate')
-    plt.title('ROC curve')
+    plt.title("ROC Curve - Mahalanobis " + dataset)
     plt.legend(loc='best')
     plt.show()
 
