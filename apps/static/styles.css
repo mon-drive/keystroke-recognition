@@ -7,7 +7,9 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 60vh;
+    height: auto;
+    min-height: 80vh;
+    overflow: auto;
 }
 
 h1 {
@@ -51,3 +53,5 @@ button {
 button:hover {
     background: #0056b3;
 }
+
+

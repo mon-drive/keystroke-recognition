@@ -5,6 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Keystroke Recognition</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("form").forEach(form => {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const formData = new FormData(form);
+            fetch(form.action, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Server response:", data); // Debugging
+
+                if (data.status === "success" && data.image_url) {
+                    const resultImage = document.getElementById("result-image");
+                    resultImage.src = data.image_url + "?t=" + new Date().getTime(); // Cache busting
+                    resultImage.style.display = "block"; // Show the image
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        });
+    });
+});
+
+    </script>
 </head>
 <body>
     <h1>Keystroke Recognition</h1>
@@ -44,5 +71,12 @@
         <button type="submit">Submit Gaussian Mixture Model</button>
     </form>
     <script src="/static/keystrokes.js"></script>
+
+    <h3>Experiment Results</h3>
+    <div id="result-container">
+        <img id="result-image" src="" alt="Result Graph" style="display: none;">
+    </div>
+
+
 </body>
 </html>

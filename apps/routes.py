@@ -1,20 +1,28 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, send_from_directory
 from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm, convert_xlsx_to_csv
 from apps.manhattan import ManhattanDetector
 from apps.gmm import train_gmm_model
 from apps.mahalanobis import MahalanobisDetector
 import os
+import uuid
 import pandas as pd
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, roc_curve, auc
 
+import matplotlib
+matplotlib.use('Agg') # Non-GUI backend
+
+import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 main = Blueprint('main', __name__)
 
 data_folder = "dataset"
+
+# Directory to store temporary images
+STATIC_IMAGE_FOLDER = os.path.join("apps","static","temp_images")
+os.makedirs(STATIC_IMAGE_FOLDER, exist_ok=True)
 
 # Route to serve the HTML page
 @main.route("/")
@@ -45,6 +53,10 @@ def keystrokes():
 
     return jsonify({"status": "success"})
 
+@main.route("/get_plot/<filename>")
+def get_plot(filename):
+    return send_from_directory(STATIC_IMAGE_FOLDER, filename)
+
 @main.route("/experimentGP", methods=["POST"])
 def TestBuffaloGP():
     # original data
@@ -65,6 +77,10 @@ def TestBuffaloGP():
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     roc_auc = auc(fpr, tpr)
 
+    # Save the plot as an image
+    image_filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+
     # Plot ROC curve
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, color="blue", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
@@ -73,12 +89,14 @@ def TestBuffaloGP():
     plt.ylim([0.0, 1.05])
     plt.xlabel("False Positive Rate (FPR)")
     plt.ylabel("True Positive Rate (TPR)")
-    plt.title("ROC Curve - GP " + dataset)
+    plt.title("ROC Curve - GP ")
     plt.legend(loc="lower right")
     plt.grid(True)
-    plt.show()
+    plt.savefig(image_path)  # Save the image
+    plt.close()  # Close plot to free memory
 
-    return jsonify({"status": "success"})
+    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
+
 
 @main.route("/experimentManhattan", methods=["POST"])
 def TestBuffaloManhattan():
@@ -103,18 +121,22 @@ def TestBuffaloManhattan():
     eer1_1 = brentq(lambda x : 1. - x - interp1d(fpr1_1, tpr1_1)(x), 0., 1.)
     print("EER1_1: ", eer1_1)
 
+    # Save the plot as an image
+    image_filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+
     plt.figure(figsize = (10,5))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Manhattan'.format(auc(fpr1_1, tpr1_1), eer1_1))
 
     plt.xlabel('False positive rate')
     plt.ylabel('True positive rate')
-    plt.title('ROC curve')
+    plt.title('ROC curve - Manhattan - ' + dataset)
     plt.legend(loc='best')
-    plt.show()
+    plt.savefig(image_path)  # Save the image
+    plt.close()  # Close plot to free memory
 
-
-    return jsonify({"status": "success"})
+    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
 
 # Train & Evaluate GMM on Buffalo Dataset
 @main.route("/experimentGMM", methods=["POST"])
@@ -143,17 +165,23 @@ def TestBuffaloGMM():
 
     # 4. Plot and display AUC, EER
     roc_auc = auc(fpr, tpr)
+
+    # Save the plot as an image
+    image_filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, label=f"GMM - AUC: {roc_auc:.3f}, EER: {eer:.3f}")
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve - GMM " + dataset)
+    plt.title("ROC Curve - GMM - " + dataset)
     plt.legend(loc="best")
     plt.grid(True)
-    plt.show()
+    plt.savefig(image_path)  # Save the image
+    plt.close()  # Close plot to free memory
 
-    return jsonify({"status": "success", "AUC": roc_auc, "EER": eer})
+    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
 
 @main.route("/experimentMahalanobis", methods=["POST"])
 def TestBuffaloMahalanobis():
@@ -180,15 +208,20 @@ def TestBuffaloMahalanobis():
     eer1_1 = brentq(lambda x : 1. - x - interp1d(fpr1_1, tpr1_1)(x), 0., 1.)
     print("EER1_1: ", eer1_1)
 
+    # Save the plot as an image
+    image_filename = f"{uuid.uuid4()}.png"
+    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+
     plt.figure(figsize = (10,5))
     plt.plot([0, 1], [0, 1], 'k--')
     plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Mahalanobis'.format(auc(fpr1_1, tpr1_1), eer1_1))
 
     plt.xlabel('False positive rate')
     plt.ylabel('True positive rate')
-    plt.title("ROC Curve - Mahalanobis " + dataset)
+    plt.title("ROC Curve - Mahalanobis - " + dataset)
     plt.legend(loc='best')
-    plt.show()
+    plt.savefig(image_path)  # Save the image
+    plt.close()  # Close plot to free memory
 
 
-    return jsonify({"status": "success"})
+    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
