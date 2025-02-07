@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
 from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm, convert_xlsx_to_csv, processAalto
-from apps.manhattan import ManhattanDetector
 from apps.gmm import train_gmm_model
 from apps.mahalanobis import MahalanobisDetector
 import os
