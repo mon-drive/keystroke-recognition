@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
-from apps.utils import execute_experimentGP, process_keystrokes_with_repetitionsManhattan,process_keystrokes_for_gmm, convert_xlsx_to_csv, processAalto
+from apps.utils import execute_experimentGP, process_buffalo_keystrokes, convert_xlsx_to_csv, processAalto
 from apps.gmm import train_gmm_model
 from apps.mahalanobis import MahalanobisDetector
 import os
@@ -109,8 +109,10 @@ def TestGMM():
 
     dataset = request.form.get("selected_dataset")
 
-    if(dataset == "Buffalo"):
-        process_keystrokes_for_gmm(input_path, output_csv)
+    if(dataset == "Buffalo Fixed Text"):
+        process_buffalo_keystrokes(input_path, output_csv, 0)
+    elif(dataset == "Buffalo Free Text"):
+        process_buffalo_keystrokes(input_path, output_csv, 1)
     elif(dataset == "Aalto"):
         processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
     elif(dataset == "Nanglae-Bhattarakosol"):
@@ -192,8 +194,10 @@ def TestMahalanobis():
 
     dataset = request.form.get("selected_dataset")
     
-    if(dataset == "Buffalo"):
-        process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
+    if(dataset == "Buffalo Fixed Text"):
+        process_buffalo_keystrokes(input_path, output_csv, 0)
+    elif(dataset == "Buffalo Free Text"):
+        process_buffalo_keystrokes(input_path, output_csv, 1)
     elif(dataset == "Aalto"):
         processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
     elif(dataset == "Nanglae-Bhattarakosol"):

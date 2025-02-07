@@ -28,7 +28,7 @@ def process_txt_file(file_path, user_id, session_id):
                     })
     return pd.DataFrame(data)
 
-def convert_txt_to_csv(base_path, output_csv):
+def convert_txt_to_csv(base_path, output_csv, text_type):
     """Legge i file dalla struttura di cartelle e li converte in un unico file CSV."""
     all_data = []
     sessions = ["s0", "s1", "s2"]  # Le tre sessioni disponibili
@@ -40,7 +40,7 @@ def convert_txt_to_csv(base_path, output_csv):
                 try:
                     user_id = int(file_name[:3])  # ID utente: i primi 3 caratteri
                     task_id = int(file_name[5])  # Task ID: il sesto carattere
-                    if 1 <= user_id <= 75 and task_id == 1:  # Solo utenti baseline e task 1
+                    if 1 <= user_id <= 75 and task_id == text_type:  # Solo utenti baseline e task 1
                         file_path = os.path.join(session_path, file_name)
                         df = process_txt_file(file_path, user_id, session_id+1)
                         all_data.append(df)
@@ -61,13 +61,16 @@ def extract_from_dataset(dataset: str):
 
     print("Extracting from dataset:", dataset)
 
-    if dataset == "Buffalo":
+    if dataset == "Buffalo Fixed Text":
         base_path = "./dataset"
-        convert_txt_to_csv(base_path, output_csv)
+        convert_txt_to_csv(base_path, output_csv, 0)
+    elif dataset == "Buffalo Free Text":
+        base_path = "./dataset"
+        convert_txt_to_csv(base_path, output_csv, 1)
     elif dataset == "Aalto":
         base_path = "./dataset/Aalto/files"
         processAaltoGP(base_path, output_csv, 1, 2000)
-    else:
+    else: #nanglae
         print("Dataset non riconosciuto")
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
@@ -89,82 +92,7 @@ def execute_experimentGP(dataset: str):
 
     experiment(original_data_profiles, original_data_profiles, "original", filter)
 
-def process_keystrokes_with_repetitionsManhattan(input_path: str, output_csv: str):
-    data = []  # Lista per raccogliere i dati da tutti i file
-    repetitions = defaultdict(int)  # Conta le ripetizioni per ogni utente
-
-    # Naviga nella cartella e sottocartelle
-    for root, dirs, files in os.walk(input_path):
-        for file in files:
-            # Verifica che sia un file txt con il formato richiesto
-            if file.endswith(".txt") and len(file) >= 6:
-                user_id = file[:3]
-                session = file[3]
-                keyboard_type = file[4]
-                task = file[5]
-
-                # Filtra i file con task=1
-                if task == "1":
-                    file_path = os.path.join(root, file)
-
-                    # Elabora il file
-                    with open(file_path, "r") as f:
-                        lines = f.readlines()
-
-                    # Parsing dei dati
-                    events = []
-                    for line in lines:
-                        parts = line.strip().split()
-                        if len(parts) == 3:
-                            key, event_type, timestamp = parts
-                            events.append({"key": key, "event_type": event_type, "timestamp": int(timestamp)})
-
-                    # Calcolo H, DD, UD e aggiunta delle ripetizioni
-                    hold_times = {}
-                    for i in range(len(events) - 1):
-                        current = events[i]
-                        next_event = events[i + 1]
-
-                        if current["event_type"] == "KeyDown" and next_event["event_type"] == "KeyUp" and current["key"] == next_event["key"]:
-                            # Calcolo del hold time H.<key>
-                            hold_time = (next_event["timestamp"] - current["timestamp"]) / 1000.0  # Decimale
-                            hold_times[current["key"]] = hold_time
-
-                        if current["event_type"] == "KeyUp" and next_event["event_type"] == "KeyDown":
-                            # Calcolo del dwell time DD.<key1>.<key2>
-                            dwell_time = (next_event["timestamp"] - current["timestamp"]) / 1000.0  # Decimale
-
-                            # Calcolo dell'up-down time UD.<key1>.<key2>
-                            up_down_time = (
-                                (next_event["timestamp"] - events[i - 1]["timestamp"]) / 1000.0
-                                if i > 0 else None
-                            )
-
-                            # Incrementa il contatore per il tasto corrente
-                            repetitions[user_id] += 1
-
-                            # Aggiungi i risultati
-                            if hold_times.get(current["key"], None) is None:
-                                continue
-                            data.append({
-                                "subject": user_id,
-                                "key": current["key"],
-                                "H": hold_times.get(current["key"], None),
-                                "UD": up_down_time,
-                                "DD": dwell_time
-                            })
-
-    # Scrivi il file CSV
-    with open(output_csv, 'w', newline='') as csvfile:
-        fieldnames = [
-            "subject", "key", "H", "UD", "DD"
-        ]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in data:
-            writer.writerow(row)
-
-def process_keystrokes_for_gmm(input_path: str, output_csv: str):
+def process_buffalo_keystrokes(input_path: str, output_csv: str, text_type):
     """
     Extracts keystroke dynamics features (H, UD, DD) from Buffalo dataset for task=0 (Fixed Text).
     
@@ -174,8 +102,6 @@ def process_keystrokes_for_gmm(input_path: str, output_csv: str):
     """
     data = []  # Store processed keystroke data
     repetitions = defaultdict(int)  # Count repetitions per user
-
-    text_type = 0  # Task=0 (Fixed Text) or Task=1 (Free Text)
 
     if text_type == 0:
         print("Processing keystroke data for task=0 (Fixed Text)")
@@ -249,8 +175,6 @@ def process_keystrokes_for_gmm(input_path: str, output_csv: str):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
-
-    print(f"Processed fixed-text keystroke data saved: {output_csv}")
 
 def convert_xlsx_to_csv(input_files, output_file):
     dataframes = []
