@@ -346,7 +346,7 @@ class UserProfile:
 def a_distance(
     sample_A_ngraphs: dict[str, float],
     sample_B_ngraphs: dict[str, float],
-    threshold: float = 1.05,
+    threshold: float = 1.25,
 ) -> float:
 
     assert len(sample_A_ngraphs) == len(sample_B_ngraphs)

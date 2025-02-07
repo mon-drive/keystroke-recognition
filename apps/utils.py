@@ -159,6 +159,13 @@ def process_keystrokes_for_gmm(input_path: str, output_csv: str):
     data = []  # Store processed keystroke data
     repetitions = defaultdict(int)  # Count repetitions per user
 
+    text_type = 0  # Task=0 (Fixed Text) or Task=1 (Free Text)
+
+    if text_type == 0:
+        print("Processing keystroke data for task=0 (Fixed Text)")
+    else:
+        print("Processing keystroke data for task=1 (Free Text)")
+
     # Navigate through dataset folders and files
     for root, dirs, files in os.walk(input_path):
         for file in files:
@@ -168,8 +175,8 @@ def process_keystrokes_for_gmm(input_path: str, output_csv: str):
                 keyboard_type = file[4]
                 task = file[5]
 
-                # Process only task=0 (Fixed Text)
-                if task == "0":
+                # Process only task=0 (Fixed Text) or task=1 (Free Text)
+                if task == str(text_type):
                     file_path = os.path.join(root, file)
 
                     # Read the file
