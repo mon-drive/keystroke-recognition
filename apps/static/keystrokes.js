@@ -22,24 +22,4 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Send data to the server when the form is submitted
-    const form = document.getElementById("keystrokeForm");
-    form.addEventListener("submit", (e) => {
-        e.preventDefault(); // Prevent the form from reloading the page
-        fetch("/experimentGP", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(keystrokes)
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            alert("Keystroke data submitted!");
-            keystrokes = []; // Clear the keystroke array
-            textArea.value = ""; // Clear the text area
-        })
-        .catch(error => console.error("Error:", error));
-    });
 });

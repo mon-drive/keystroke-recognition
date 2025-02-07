@@ -59,7 +59,10 @@ def get_plot(filename):
 @main.route("/experimentGP", methods=["POST"])
 def TestBuffaloGP():
     # original data
-    execute_experimentGP()
+
+    dataset = request.form.get("selected_dataset")
+
+    execute_experimentGP(dataset)
 
     #open file
     auth_file = "dataset/original_authentification_data.csv"

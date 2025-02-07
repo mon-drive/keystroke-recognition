@@ -4,6 +4,7 @@ from apps.GunettiPicardi import create_user_profiles, experiment
 import csv
 from collections import defaultdict
 import re
+from flask import request
 
 data_folder = "dataset"
 
@@ -53,23 +54,38 @@ def convert_txt_to_csv(base_path, output_csv):
     final_df.to_csv(output_csv, index=False)
     print(f"File CSV salvato in: {output_csv}")
 
-def extract_from_buffalo():
+def extract_from_dataset(dataset: str):
         # Percorso alla directory contenente le cartelle delle sessioni
-    base_path = "./dataset"  # Sostituisci con il percorso reale
+
     output_csv = "./dataset/keystroke_baseline_task1.csv"
 
-    convert_txt_to_csv(base_path, output_csv)
+    print("Extracting from dataset:", dataset)
 
-def execute_experimentGP():
+    if dataset == "Buffalo":
+        base_path = "./dataset"
+        convert_txt_to_csv(base_path, output_csv)
+    elif dataset == "Aalto":
+        base_path = "./dataset/Aalto/files"
+        processAaltoGP(base_path, output_csv, 1, 2000)
+    else:
+        print("Dataset non riconosciuto")
+        xls1 = "dataset/fullname_userInformation.xlsx"
+        xls2 = "dataset/email_userInformation.xlsx"
+        xls3 = "dataset/phone_userInformation.xlsx"
+        convert_xlsx_to_csvGP([xls1,xls2,xls3], output_csv)
+    
+
+def execute_experimentGP(dataset: str):
     # original data
-    extract_from_buffalo()
+    print("Dataset dentro execute_experimentGP:", dataset)  
+    extract_from_dataset(dataset)
+
     original_set = "./dataset/keystroke_baseline_task1.csv"
     original_data_profiles = f"./{data_folder}/original_data_profiles"
 
     print("Original data profiles: ", original_data_profiles)
 
-    if not os.path.isfile(original_data_profiles):
-        create_user_profiles(original_set, original_data_profiles)
+    create_user_profiles(original_set, original_data_profiles)
 
     experiment(original_data_profiles, original_data_profiles, "original", filter)
 
@@ -314,3 +330,100 @@ def processAalto(folder, output, min_user, max_user):
         print(f"File CSV salvato con successo in: {output}")
     else:
         print("Nessun dato valido trovato nei file.")
+
+def processAaltoGP(folder, output, min_user, max_user):
+    all_data = []
+    for file in os.listdir(folder):
+        if file.endswith("_keystrokes.txt"):
+            user_id = int(file.split("_")[0])
+            if user_id == 888:
+                continue
+            if min_user <= user_id <= max_user:
+                file_path = os.path.join(folder, file)
+                try:
+                    df = pd.read_csv(file_path, sep='\t', dtype=str, on_bad_lines='skip', names=[
+                        'PARTICIPANT_ID', 'TEST_SECTION_ID', 'SENTENCE', 'USER_INPUT', 
+                        'KEYSTROKE_ID', 'PRESS_TIME', 'RELEASE_TIME', 'LETTER', 'KEYCODE'
+                    ])
+
+                    expected_columns = {'PARTICIPANT_ID', 'TEST_SECTION_ID', 'SENTENCE', 'USER_INPUT', 
+                    'KEYSTROKE_ID', 'PRESS_TIME', 'RELEASE_TIME', 'LETTER', 'KEYCODE'}
+                    if not expected_columns.issubset(df.columns):
+                        raise ValueError(f"Il file {file} non contiene tutte le colonne necessarie: {df.columns}")
+
+                                        
+                    # Converti i dati numerici
+                    df[['PRESS_TIME', 'RELEASE_TIME']] = df[['PRESS_TIME', 'RELEASE_TIME']].apply(pd.to_numeric, errors='coerce')
+                    
+                    # Rimuovi righe con valori NaN
+                    df.dropna(inplace=True)
+
+                    df.dropna(subset=['PRESS_TIME', 'RELEASE_TIME'], inplace=True)
+
+                    df = df[(df['PRESS_TIME'] > 0) & (df['RELEASE_TIME'] > 0)]
+                    
+                    # Aggiungi subject e key
+                    df['user'] = user_id
+                    df['key'] = df['LETTER'].fillna(df['KEYCODE'])
+                    df['set'] = 1
+                    
+                    df['timestamp'] = df['RELEASE_TIME']
+
+                    # Seleziona le colonne richieste
+                    df = df[['user', 'key', 'set', 'timestamp']].dropna()
+
+                    all_data.append(df)
+                except Exception as e:
+                    print(f"Errore nella lettura del file {file}: {e}")
+    
+    if all_data:
+        # Unisce tutti i dati e salva il CSV
+        final_df = pd.concat(all_data, ignore_index=True)
+        final_df.to_csv(output, index=False)
+        print(f"File CSV salvato con successo in: {output}")
+    else:
+        print("Nessun dato valido trovato nei file.")
+
+def convert_xlsx_to_csvGP(input_files, output_file):
+    # Lista per salvare i dati trasformati
+    data_list = []
+
+    for file in input_files:
+        print(f"Processing {file}...")
+        df = pd.read_excel(file)
+
+        # Controlla che il file contenga le colonne necessarie
+        required_columns = {"id", "single_alphabet", "Dwell_time"}
+        if not required_columns.issubset(df.columns):
+            print(f"Skipping {file}: Missing required columns")
+            continue
+
+        # Creazione delle nuove colonne
+        df["user"] = df["id"]
+        df["key"] = df["single_alphabet"]
+        
+        # Generiamo un valore per 'set' (ad esempio, il nome del file senza estensione)
+        if file == "dataset/fullname_userInformation.xlsx":
+            df["set"] = 1
+        elif file == "dataset/email_userInformation.xlsx":
+            df["set"] = 2
+        else:
+            df["set"] = 3
+
+        # Creazione del timestamp progressivo
+        base_time = 1471948497404  # Timestamp iniziale in millisecondi
+        df["timestamp"] = base_time + df["Dwell_time"].cumsum()
+
+        # Selezioniamo solo le colonne richieste
+        df_final = df[["user", "key", "set", "timestamp"]]
+
+        # Aggiungiamo alla lista
+        data_list.append(df_final)
+
+    # Uniamo tutti i dati in un DataFrame unico
+    final_df = pd.concat(data_list, ignore_index=True)
+
+    # Salviamo il CSV
+    final_df.to_csv(output_file, index=False)
+
+    print(f"CSV generato con successo: {output_file}")
