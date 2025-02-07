@@ -97,50 +97,9 @@ def TestBuffaloGP():
 
     return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
 
-
-@main.route("/experimentManhattan", methods=["POST"])
-def TestBuffaloManhattan():
-    # original data
-    input_path = "dataset"
-    output_csv = "dataset/output_Manhattan.csv" 
-
-    dataset = request.form.get("selected_dataset")
-
-    if(dataset == "Buffalo"):
-        process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
-    elif(dataset == "Nanglae-Bhattarakosol"): 
-        xls1 = "dataset/fullname_userInformation.xlsx"
-        xls2 = "dataset/email_userInformation.xlsx"
-        xls3 = "dataset/phone_userInformation.xlsx"
-        convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
-
-    data1 = pd.read_csv(output_csv)
-    subjects1 = data1["subject"].unique()
-    print("Subjects: ")
-    fpr1_1, tpr1_1, thresholds1_1 = ManhattanDetector(subjects1, data1).evaluateSet1()
-    eer1_1 = brentq(lambda x : 1. - x - interp1d(fpr1_1, tpr1_1)(x), 0., 1.)
-    print("EER1_1: ", eer1_1)
-
-    # Save the plot as an image
-    image_filename = f"{uuid.uuid4()}.png"
-    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
-
-    plt.figure(figsize = (8,8))
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Manhattan'.format(auc(fpr1_1, tpr1_1), eer1_1))
-
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title('ROC curve - Manhattan - ' + dataset)
-    plt.legend(loc='best')
-    plt.savefig(image_path)  # Save the image
-    plt.close()  # Close plot to free memory
-
-    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
-
 # Train & Evaluate GMM on Buffalo Dataset
 @main.route("/experimentGMM", methods=["POST"])
-def TestBuffaloGMM():
+def TestGMM():
     """Processes fixed-text and free-text data and trains GMM authentication models."""
     
     input_path = "dataset"   # your base folder
@@ -186,7 +145,7 @@ def TestBuffaloGMM():
     return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
 
 @main.route("/experimentMahalanobis", methods=["POST"])
-def TestBuffaloMahalanobis():
+def TestMahalanobis():
     # original data
     input_path = "dataset"
     output_csv = "dataset/output_Mahalanobis.csv" 
