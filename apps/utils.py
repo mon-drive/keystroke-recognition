@@ -3,6 +3,7 @@ import os
 from apps.GunettiPicardi import create_user_profiles, experiment
 import csv
 from collections import defaultdict
+import re
 
 data_folder = "dataset"
 
@@ -248,3 +249,61 @@ def convert_xlsx_to_csv(input_files, output_file):
     # Salva il CSV
     final_df.to_csv(output_file, index=False)
     print(f"File salvato come {output_file}")
+
+def processAalto(folder, output, min_user, max_user):
+    all_data = []
+    allowed_keys = re.compile(r'^[A-Za-z0-9]|SHIFT|CAPS_LOCK|CTRL|[.,-]$')
+    for file in os.listdir(folder):
+        if file.endswith("_keystrokes.txt"):
+            user_id = int(file.split("_")[0])
+            if user_id == 888:
+                continue
+            if min_user <= user_id <= max_user:
+                file_path = os.path.join(folder, file)
+                try:
+                    df = pd.read_csv(file_path, sep='\t', dtype=str, on_bad_lines='skip', names=[
+                        'PARTICIPANT_ID', 'TEST_SECTION_ID', 'SENTENCE', 'USER_INPUT', 
+                        'KEYSTROKE_ID', 'PRESS_TIME', 'RELEASE_TIME', 'LETTER', 'KEYCODE'
+                    ])
+
+                    expected_columns = {'PARTICIPANT_ID', 'TEST_SECTION_ID', 'SENTENCE', 'USER_INPUT', 
+                    'KEYSTROKE_ID', 'PRESS_TIME', 'RELEASE_TIME', 'LETTER', 'KEYCODE'}
+                    if not expected_columns.issubset(df.columns):
+                        raise ValueError(f"Il file {file} non contiene tutte le colonne necessarie: {df.columns}")
+
+                                        
+                    # Converti i dati numerici
+                    df[['PRESS_TIME', 'RELEASE_TIME']] = df[['PRESS_TIME', 'RELEASE_TIME']].apply(pd.to_numeric, errors='coerce')
+                    
+                    # Rimuovi righe con valori NaN
+                    df.dropna(inplace=True)
+
+                    df.dropna(subset=['PRESS_TIME', 'RELEASE_TIME'], inplace=True)
+
+                    df = df[(df['PRESS_TIME'] > 0) & (df['RELEASE_TIME'] > 0)]
+                    
+                    # Calcola H (Hold time)
+                    df['H'] = (df['RELEASE_TIME'] - df['PRESS_TIME']) / 1000
+                    
+                    # Calcola UD (Up-Down time) e DD (Down-Down time)
+                    df['UD'] = df['PRESS_TIME'].diff() / 1000
+                    df['DD'] = df['PRESS_TIME'].diff().shift(-1) / 1000
+                    df = df[(df['H'] >= 0) & (df['UD'] >= 0) & (df['DD'] >= 0)]
+                    # Aggiungi subject e key
+                    df['subject'] = user_id
+                    df['key'] = df['LETTER'].fillna(df['KEYCODE'])
+
+                    # Seleziona le colonne richieste
+                    df = df[['subject', 'key', 'H', 'UD', 'DD']].dropna()
+
+                    all_data.append(df)
+                except Exception as e:
+                    print(f"Errore nella lettura del file {file}: {e}")
+    
+    if all_data:
+        # Unisce tutti i dati e salva il CSV
+        final_df = pd.concat(all_data, ignore_index=True)
+        final_df.to_csv(output, index=False)
+        print(f"File CSV salvato con successo in: {output}")
+    else:
+        print("Nessun dato valido trovato nei file.")
