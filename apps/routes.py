@@ -147,10 +147,9 @@ def TestGMM():
     plt.figure(figsize=(8, 8))
     plt.plot(fpr, tpr, label=f"AUC: {roc_auc:.3f}, EER: {eer:.3f}", color="blue")
     plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
-    plt.scatter(eer, 1 - eer, color="red", label="EER Point", zorder=3)  # Highlight EER
     plt.xlabel("False Positive Rate (FPR)")
     plt.ylabel("True Positive Rate (TPR)")
-    plt.title(f"ROC Curve with EER - GMM - {dataset}")
+    plt.title(f"ROC Curve - GMM - {dataset}")
     plt.legend(loc="best")
     plt.grid(True)
     plt.savefig(roc_image_path)
@@ -228,10 +227,9 @@ def TestMahalanobis():
     plt.figure(figsize=(8, 8))
     plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
     plt.plot(fpr1_1, tpr1_1, color="blue", label=f"AUC: {auc(fpr1_1, tpr1_1):.3f}, EER: {eer1_1:.3f}")
-    plt.scatter(eer1_1, 1 - eer1_1, color="red", label="EER Point", zorder=3)  # Highlight EER
     plt.xlabel("False Positive Rate (FPR)")
     plt.ylabel("True Positive Rate (TPR)")
-    plt.title(f"ROC Curve with EER - Mahalanobis - {dataset}")
+    plt.title(f"ROC Curve - Mahalanobis - {dataset}")
     plt.legend(loc="best")
     plt.grid(True)
     plt.savefig(roc_image_path)
