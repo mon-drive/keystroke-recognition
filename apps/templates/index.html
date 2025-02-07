@@ -7,30 +7,38 @@
     <link rel="stylesheet" href="/static/styles.css">
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("form").forEach(form => {
-        form.addEventListener("submit", function (event) {
-            event.preventDefault(); // Prevent default form submission
-            
-            const formData = new FormData(form);
-            fetch(form.action, {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("Server response:", data); // Debugging
+            document.querySelectorAll("form").forEach(form => {
+                form.addEventListener("submit", function (event) {
+                    event.preventDefault(); // Prevent default form submission
+                    
+                    const formData = new FormData(form);
+                    fetch(form.action, {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log("Server response:", data); // Debugging
 
-                if (data.status === "success" && data.image_url) {
-                    const resultImage = document.getElementById("result-image");
-                    resultImage.src = data.image_url + "?t=" + new Date().getTime(); // Cache busting
-                    resultImage.style.display = "block"; // Show the image
-                }
-            })
-            .catch(error => console.error("Error:", error));
+                        if (data.status === "success") {
+                            if (data.roc_image_url) {
+                                document.getElementById("roc-image").src = data.roc_image_url + "?t=" + new Date().getTime();
+                                document.getElementById("roc-image").style.display = "block";
+                            }
+                            if (data.frr_image_url) {
+                                document.getElementById("frr-image").src = data.frr_image_url + "?t=" + new Date().getTime();
+                                document.getElementById("frr-image").style.display = "block";
+                            }
+                            if (data.far_image_url) {
+                                document.getElementById("far-image").src = data.far_image_url + "?t=" + new Date().getTime();
+                                document.getElementById("far-image").style.display = "block";
+                            }
+                        }
+                    })
+                    .catch(error => console.error("Error:", error));
+                });
+            });
         });
-    });
-});
-
     </script>
 </head>
 <body>
@@ -39,8 +47,8 @@
     <form id="dataset_select" method="POST" action="/dataset_selection">
         <select name="dropdown_dataset" onchange="this.form.submit()">
             <option value="" disabled selected>Choose here</option>
-            <option value="Buffalo">Buffalo</option>
             <option value="Aalto">Aalto</option>
+            <option value="Buffalo">Buffalo</option>
             <option value="Nanglae-Bhattarakosol">Nanglae-Bhattarakosol</option>
         </select>
     </form>
@@ -70,7 +78,9 @@
 
     <h3>Experiment Results</h3>
     <div id="result-container">
-        <img id="result-image" src="" alt="Result Graph" style="display: none;">
+        <img id="roc-image" src="" alt="ROC Curve" style="display: none;">
+        <img id="frr-image" src="" alt="FRR Graph" style="display: none;">
+        <img id="far-image" src="" alt="FAR Graph" style="display: none;">
     </div>
 
 

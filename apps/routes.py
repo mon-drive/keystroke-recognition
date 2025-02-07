@@ -126,22 +126,61 @@ def TestGMM():
     # 4. Plot and display AUC, EER
     roc_auc = auc(fpr, tpr)
 
-    # Save the plot as an image
-    image_filename = f"{uuid.uuid4()}.png"
-    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+    # Compute FRR and FAR
+    frr = 1 - tpr  # False Rejection Rate
+    far = fpr      # False Acceptance Rate
 
+    # Unique filenames for images
+    roc_image_filename = f"{uuid.uuid4()}.png"
+    roc_image_path = os.path.join(STATIC_IMAGE_FOLDER, roc_image_filename)
+
+    frr_image_filename = f"{uuid.uuid4()}.png"
+    frr_image_path = os.path.join(STATIC_IMAGE_FOLDER, frr_image_filename)
+
+    far_image_filename = f"{uuid.uuid4()}.png"
+    far_image_path = os.path.join(STATIC_IMAGE_FOLDER, far_image_filename)
+
+    # === 1. ROC Curve with EER ===
     plt.figure(figsize=(8, 8))
-    plt.plot(fpr, tpr, label=f"GMM - AUC: {roc_auc:.3f}, EER: {eer:.3f}")
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve - GMM - " + dataset)
+    plt.plot(fpr, tpr, label=f"AUC: {roc_auc:.3f}, EER: {eer:.3f}", color="blue")
+    plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
+    plt.scatter(eer, 1 - eer, color="red", label="EER Point", zorder=3)  # Highlight EER
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title(f"ROC Curve with EER - GMM - {dataset}")
     plt.legend(loc="best")
     plt.grid(True)
-    plt.savefig(image_path)  # Save the image
-    plt.close()  # Close plot to free memory
+    plt.savefig(roc_image_path)
+    plt.close()
 
-    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
+    # === 2. FRR vs Threshold ===
+    plt.figure(figsize=(8, 8))
+    plt.plot(thresholds, frr, color="green", label="FRR (False Rejection Rate)")
+    plt.xlabel("Threshold")
+    plt.ylabel("False Rejection Rate (FRR)")
+    plt.title(f"FRR vs. Threshold - GMM - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(frr_image_path)
+    plt.close()
+
+    # === 3. FAR vs Threshold ===
+    plt.figure(figsize=(8, 8))
+    plt.plot(thresholds, far, color="red", label="FAR (False Acceptance Rate)")
+    plt.xlabel("Threshold")
+    plt.ylabel("False Acceptance Rate (FAR)")
+    plt.title(f"FAR vs. Threshold - GMM - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(far_image_path)
+    plt.close()
+
+    return jsonify({
+    "status": "success",
+    "roc_image_url": f"/static/temp_images/{roc_image_filename}",
+    "frr_image_url": f"/static/temp_images/{frr_image_filename}",
+    "far_image_url": f"/static/temp_images/{far_image_filename}",
+    })
 
 @main.route("/experimentMahalanobis", methods=["POST"])
 def TestMahalanobis():
@@ -168,20 +207,59 @@ def TestMahalanobis():
     eer1_1 = brentq(lambda x : 1. - x - interp1d(fpr1_1, tpr1_1)(x), 0., 1.)
     print("EER1_1: ", eer1_1)
 
-    # Save the plot as an image
-    image_filename = f"{uuid.uuid4()}.png"
-    image_path = os.path.join(STATIC_IMAGE_FOLDER, image_filename)
+    # Compute FRR and FAR
+    frr = 1 - tpr1_1  # False Rejection Rate
+    far = fpr1_1      # False Acceptance Rate
 
-    plt.figure(figsize = (8,8))
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.plot(fpr1_1, tpr1_1, label='AUC = {:.3f}, EER = {:.3f} Set-1-Mahalanobis'.format(auc(fpr1_1, tpr1_1), eer1_1))
+    # Generate unique filenames for images
+    roc_image_filename = f"{uuid.uuid4()}.png"
+    roc_image_path = os.path.join(STATIC_IMAGE_FOLDER, roc_image_filename)
 
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title("ROC Curve - Mahalanobis - " + dataset)
-    plt.legend(loc='best')
-    plt.savefig(image_path)  # Save the image
-    plt.close()  # Close plot to free memory
+    frr_image_filename = f"{uuid.uuid4()}.png"
+    frr_image_path = os.path.join(STATIC_IMAGE_FOLDER, frr_image_filename)
+
+    far_image_filename = f"{uuid.uuid4()}.png"
+    far_image_path = os.path.join(STATIC_IMAGE_FOLDER, far_image_filename)
+
+    # === 1. ROC Curve with EER ===
+    plt.figure(figsize=(8, 8))
+    plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
+    plt.plot(fpr1_1, tpr1_1, color="blue", label=f"AUC: {auc(fpr1_1, tpr1_1):.3f}, EER: {eer1_1:.3f}")
+    plt.scatter(eer1_1, 1 - eer1_1, color="red", label="EER Point", zorder=3)  # Highlight EER
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title(f"ROC Curve with EER - Mahalanobis - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(roc_image_path)
+    plt.close()
+
+    # === 2. FRR vs Threshold ===
+    plt.figure(figsize=(8, 8))
+    plt.plot(thresholds1_1, frr, color="green", label="FRR (False Rejection Rate)")
+    plt.xlabel("Threshold")
+    plt.ylabel("False Rejection Rate (FRR)")
+    plt.title(f"FRR vs. Threshold - Mahalanobis - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(frr_image_path)
+    plt.close()
+
+    # === 3. FAR vs Threshold ===
+    plt.figure(figsize=(8, 8))
+    plt.plot(thresholds1_1, far, color="red", label="FAR (False Acceptance Rate)")
+    plt.xlabel("Threshold")
+    plt.ylabel("False Acceptance Rate (FAR)")
+    plt.title(f"FAR vs. Threshold - Mahalanobis - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(far_image_path)
+    plt.close()
 
 
-    return jsonify({"status": "success", "image_url": f"/static/temp_images/{image_filename}"})
+    return jsonify({
+    "status": "success",
+    "roc_image_url": f"/static/temp_images/{roc_image_filename}",
+    "frr_image_url": f"/static/temp_images/{frr_image_filename}",
+    "far_image_url": f"/static/temp_images/{far_image_filename}",
+    })
