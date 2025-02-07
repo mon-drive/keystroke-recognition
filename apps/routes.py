@@ -108,7 +108,7 @@ def TestBuffaloManhattan():
 
     if(dataset == "Buffalo"):
         process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
-    else: # second dataset
+    elif(dataset == "Nanglae-Bhattarakosol"): 
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
@@ -141,21 +141,22 @@ def TestBuffaloManhattan():
 # Train & Evaluate GMM on Buffalo Dataset
 @main.route("/experimentGMM", methods=["POST"])
 def TestBuffaloGMM():
-    """Processes Buffalo fixed-text data and trains GMM authentication models."""
+    """Processes fixed-text and free-text data and trains GMM authentication models."""
     
     input_path = "dataset"   # your base folder
-    output_csv = "dataset/output_Mahalanobis.csv"
+    output_csv = "dataset/output_gmm.csv"
 
     dataset = request.form.get("selected_dataset")
 
     if(dataset == "Buffalo"):
         process_keystrokes_for_gmm(input_path, output_csv)
-    else: # second dataset
+    elif(dataset == "Aalto"):
+        processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
+    elif(dataset == "Nanglae-Bhattarakosol"):
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
-        #convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
-        processAalto("dataset/Aalto/files", output_csv, 10000, 17000)
+        convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
 
     # 2. Train GMM and evaluate
     fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)
@@ -194,12 +195,13 @@ def TestBuffaloMahalanobis():
     
     if(dataset == "Buffalo"):
         process_keystrokes_with_repetitionsManhattan(input_path, output_csv)
-    else: # second dataset
+    elif(dataset == "Aalto"):
+        processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
+    elif(dataset == "Nanglae-Bhattarakosol"):
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
-        #convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
-        processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
+        convert_xlsx_to_csv([xls1, xls2, xls3], output_csv)
 
     data1 = pd.read_csv(output_csv)
     subjects1 = data1["subject"].unique()
