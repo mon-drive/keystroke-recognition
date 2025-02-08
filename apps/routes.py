@@ -8,6 +8,7 @@ import pandas as pd
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 from sklearn.metrics import accuracy_score, roc_curve, auc
+import numpy as np
 
 import matplotlib
 matplotlib.use('Agg') # Non-GUI backend
@@ -119,7 +120,7 @@ def TestGMM():
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
         xls3 = "dataset/phone_userInformation.xlsx"
-        convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
+        #convert_xlsx_to_csv([xls1,xls2,xls3], output_csv)
 
     # 2. Train GMM and evaluate
     fpr, tpr, thresholds = train_gmm_model(output_csv, M=3,delta=1.0)

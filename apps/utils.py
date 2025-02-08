@@ -5,6 +5,7 @@ import csv
 from collections import defaultdict
 import re
 from flask import request
+import numpy as np
 
 data_folder = "dataset"
 

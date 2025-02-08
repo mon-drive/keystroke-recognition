@@ -243,7 +243,7 @@ class GMMKeystrokeModel:
             return 0.0
         fr_count = sum(score < threshold for score in genuine_scores)
         return fr_count / float(len(genuine_scores))
-
+    
 ################################################################################
 # Main convenience function for your route: train_gmm_model
 ################################################################################
