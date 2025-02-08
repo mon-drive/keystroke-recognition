@@ -91,7 +91,9 @@ def execute_experimentGP(dataset: str):
 
     create_user_profiles(original_set, original_data_profiles)
 
-    experiment(original_data_profiles, original_data_profiles, "original", filter)
+    y_true, y_scores = experiment(original_data_profiles, original_data_profiles, "original", filter)
+
+    return y_true,y_scores
 
 def process_buffalo_keystrokes(input_path: str, output_csv: str, text_type):
     """

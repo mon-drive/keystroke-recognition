@@ -63,22 +63,8 @@ def TestBuffaloGP():
 
     dataset = request.form.get("selected_dataset")
 
-    execute_experimentGP(dataset)
-    #open file
-    auth_file = "dataset/original_authentification_data.csv"
-    df = pd.read_csv(auth_file)
-
-    # Define legitimate users (1) and imposters (0)
-    y_true = (df["FalseRejectAttempts"] > 0).astype(int)  # 1 for legitimate users
-    y_true[df["FalseAcceptError"] > 0] = 0  # 0 for imposters
-
-    # Use FalseReject1 as the decision score
-    y_scores = df["FalseReject1"].values
-
-    # Compute ROC curve
-    fpr, tpr, _ = roc_curve(y_true, y_scores)
-    roc_auc = auc(fpr, tpr)
-
+    y_true,y_scores = execute_experimentGP(dataset)
+    
     # Unique filenames for images
     roc_image_filename = f"{uuid.uuid4()}.png"
     roc_image_path = os.path.join(STATIC_IMAGE_FOLDER, roc_image_filename)
@@ -89,6 +75,35 @@ def TestBuffaloGP():
     frr_image_filename = f"{uuid.uuid4()}.png"
     frr_image_path = os.path.join(STATIC_IMAGE_FOLDER, frr_image_filename)
 
+     # Compute ROC
+    fpr, tpr, thresholds = roc_curve(y_true, y_scores)
+
+    # Calculate AUC
+    roc_auc = auc(fpr, tpr)
+
+    far = fpr
+    frr = 1 - tpr
+    # Find Equal Error Rate (EER) point
+    eer_index = np.nanargmin(np.abs(far - frr))  # Find the index where FAR and FRR are closest
+    eer_threshold = thresholds[eer_index]  # Get the corresponding threshold
+    eer_far = far[eer_index]  # Single value for FAR at EER
+    eer_frr = frr[eer_index]  # Single value for FRR at EER
+
+    print(f"EER Threshold: {eer_threshold}")
+    print(f"FAR at EER: {eer_far}")
+    print(f"FRR at EER: {eer_frr}")
+    
+    # === 1. ROC Curve with EER ===
+    plt.figure(figsize=(8, 8))
+    plt.plot(fpr, tpr, label=f"AUC: {roc_auc:.3f}", color="blue")
+    plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
+    plt.xlabel("False Positive Rate (FPR)")
+    plt.ylabel("True Positive Rate (TPR)")
+    plt.title(f"ROC Curve - GP - {dataset}")
+    plt.legend(loc="best")
+    plt.grid(True)
+    plt.savefig(roc_image_path)
+    plt.close()
 
     return jsonify({
         "status": "success",

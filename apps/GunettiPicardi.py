@@ -808,15 +808,49 @@ def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, ou
     print(f"False Rejection Rate (FRR): {FRR}")
     print(f"Equal Error Rate (EER): {EER}")
 
-    # ROC Curve
-    plt.figure()
-    plt.plot([FAR], [1 - FRR], marker='o', label="ROC Curve")
-    plt.plot([0, 1], [0, 1], linestyle='--', label="Random Classifier")
-    plt.scatter(FAR, 1 - FRR, color='red', label=f"EER = {EER:.3f}")
-    plt.xlabel("False Acceptance Rate (FAR)")
-    plt.ylabel("1 - False Rejection Rate (1 - FRR)")
-    plt.title("ROC Curve")
-    plt.legend()
-    plt.grid()
-    plt.show()
+    user_profiles = user_profiles_evaluation
+    distance_measure = "r2"
+    
+    genuine_scores = []
+    impostor_scores = []
+
+    for user_idx, user_profile in enumerate(user_profiles):
+        # For each sample in this user
+        for sample_idx, sample in enumerate(user_profile.get_samples()):
+            # Compute distances to every user profile
+            distances_dict = get_mean_distances(
+                user_profiles, 
+                sample, 
+                attacker_sample_idx=sample_idx, 
+                attacker_index=user_idx
+            )
+            
+            # distance to each user for the chosen measure
+            distances_for_measure = distances_dict[distance_measure]
+            
+            # Append scores to genuine/impostor based on whether the attacked user is the same
+            for attacked_idx, dist_value in enumerate(distances_for_measure):
+                if attacked_idx == user_idx:
+                    # same user => genuine
+                    genuine_scores.append(dist_value)
+                else:
+                    # different user => impostor
+                    impostor_scores.append(dist_value)
+    
+    genuine_labels = np.ones(len(genuine_scores))
+    impostor_labels = np.zeros(len(impostor_scores))
+    # Concatenate labels
+    y_true = np.concatenate((genuine_labels, impostor_labels))
+
+    # Distances: smaller = more genuine
+    # We'll invert the distance so that bigger = more genuine
+    genuine_scores_inverted = [-d for d in genuine_scores]
+    impostor_scores_inverted = [-d for d in impostor_scores]
+
+    # Combine all scores
+    y_scores = np.concatenate((genuine_scores_inverted, impostor_scores_inverted))
+
+    return y_true,y_scores
+
+
 
