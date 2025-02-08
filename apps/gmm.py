@@ -26,7 +26,7 @@ class GMMKeystrokeModel:
     """
 
     def __init__(self, M=3, delta=1.0, s_thresh=0.3, 
-                 train_ratio=0.7, valid_ratio=0.15, test_ratio=0.15):
+                 train_ratio=0.7, valid_ratio=0.3):
         """
         :param M: Number of components in each GMM.
         :param delta: Similarity tolerance parameter in [mean - delta*stdev, mean + delta*stdev].
@@ -40,7 +40,6 @@ class GMMKeystrokeModel:
         self.s_thresh = s_thresh
         self.train_ratio = train_ratio
         self.valid_ratio = valid_ratio
-        self.test_ratio = test_ratio
 
         # We will discover users from CSV automatically
         self.users = []
@@ -82,12 +81,10 @@ class GMMKeystrokeModel:
 
             df_train = df_user.iloc[:n_train]
             df_valid = df_user.iloc[n_train : n_train + n_valid]
-            df_test  = df_user.iloc[n_train + n_valid :]
 
             # Convert each subset to { digraph -> array of times }
             self.user_digraphs_train[user_id] = self._subset_to_digraphs(df_train)
             self.user_digraphs_valid[user_id] = self._subset_to_digraphs(df_valid)
-            self.user_digraphs_test[user_id]  = self._subset_to_digraphs(df_test)
 
     def _subset_to_digraphs(self, df_subset):
         """
@@ -192,8 +189,6 @@ class GMMKeystrokeModel:
         # Get the dictionary of query times
         if split == "valid":
             query_dict = self.user_digraphs_valid[query_user_id]
-        else:
-            query_dict = self.user_digraphs_test[query_user_id]
 
         # Get claimed_user's GMM param dictionary
         claimed_gmms = self.user_gmm_params[claimed_user_id]
@@ -257,8 +252,7 @@ def train_gmm_model(
     M=3,
     delta=1.0,
     train_ratio=0.7,
-    valid_ratio=0.15,
-    test_ratio=0.15,
+    valid_ratio=0.3
 ):
     """
     Overhauled version of 'train_gmm_model' that uses the snippet-based approach:
@@ -280,8 +274,7 @@ def train_gmm_model(
         delta=delta,
         s_thresh=0.3,  # initial guess
         train_ratio=train_ratio,
-        valid_ratio=valid_ratio,
-        test_ratio=test_ratio
+        valid_ratio=valid_ratio
     )
 
     # 2) Load CSV into model
