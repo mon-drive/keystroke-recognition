@@ -47,7 +47,6 @@ class GMMKeystrokeModel:
         # For each user, these dictionaries map { digraph_string -> np.array of times }
         self.user_digraphs_train = {}
         self.user_digraphs_valid = {}
-        self.user_digraphs_test  = {}
 
         # For each user, store { digraph_string -> (means, covars, weights) }
         self.user_gmm_params = {}
