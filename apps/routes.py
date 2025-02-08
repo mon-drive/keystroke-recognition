@@ -88,20 +88,7 @@ def TestBuffaloGP():
 
     frr_image_filename = f"{uuid.uuid4()}.png"
     frr_image_path = os.path.join(STATIC_IMAGE_FOLDER, frr_image_filename)
-    
-    # Plot ROC curve
-    plt.figure(figsize=(8, 8))
-    plt.plot(fpr, tpr, color="red", lw=2, label=f"ROC curve (AUC = {roc_auc:.2f})")
-    plt.plot([0, 1], [0, 1], color="gray", linestyle="--")  # Diagonal reference line
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel("False Positive Rate (FPR)")
-    plt.ylabel("True Positive Rate (TPR)")
-    plt.title("ROC Curve - GP ")
-    plt.legend(loc="lower right")
-    plt.grid(True)
-    plt.savefig(image_path)  # Save the image
-    plt.close()  # Close plot to free memory
+
 
     return jsonify({
         "status": "success",
