@@ -65,17 +65,7 @@ def TestBuffaloGP():
 
     y_true,y_scores = execute_experimentGP(dataset)
     
-    # Unique filenames for images
-    roc_image_filename = f"{uuid.uuid4()}.png"
-    roc_image_path = os.path.join(STATIC_IMAGE_FOLDER, roc_image_filename)
-    
-    far_image_filename = f"{uuid.uuid4()}.png"
-    far_image_path = os.path.join(STATIC_IMAGE_FOLDER, far_image_filename)
-
-    frr_image_filename = f"{uuid.uuid4()}.png"
-    frr_image_path = os.path.join(STATIC_IMAGE_FOLDER, frr_image_filename)
-
-     # Compute ROC
+    # Compute ROC
     fpr, tpr, thresholds = roc_curve(y_true, y_scores)
 
     # Calculate AUC
@@ -83,33 +73,18 @@ def TestBuffaloGP():
 
     far = fpr
     frr = 1 - tpr
+
     # Find Equal Error Rate (EER) point
     eer_index = np.nanargmin(np.abs(far - frr))  # Find the index where FAR and FRR are closest
     eer_threshold = thresholds[eer_index]  # Get the corresponding threshold
     eer_far = far[eer_index]  # Single value for FAR at EER
     eer_frr = frr[eer_index]  # Single value for FRR at EER
 
-    print(f"EER Threshold: {eer_threshold}")
-    print(f"FAR at EER: {eer_far}")
-    print(f"FRR at EER: {eer_frr}")
-    
-    # === 1. ROC Curve with EER ===
-    plt.figure(figsize=(8, 8))
-    plt.plot(fpr, tpr, label=f"AUC: {roc_auc:.3f}", color="blue")
-    plt.plot([0, 1], [0, 1], 'k--', label="Random Guess")
-    plt.xlabel("False Positive Rate (FPR)")
-    plt.ylabel("True Positive Rate (TPR)")
-    plt.title(f"ROC Curve - GP - {dataset}")
-    plt.legend(loc="best")
-    plt.grid(True)
-    plt.savefig(roc_image_path)
-    plt.close()
+    print(f"FAR: {eer_far}")
+    print(f"FRR: {eer_frr}")
 
     return jsonify({
-        "status": "success",
-        "roc_image_url": f"/static/temp_images/{roc_image_filename}",
-        "frr_image_url": f"/static/temp_images/{frr_image_filename}",
-        "far_image_url": f"/static/temp_images/{far_image_filename}"
+        "status": "success"
     })
 
 # Train & Evaluate GMM on Buffalo Dataset

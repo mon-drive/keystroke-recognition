@@ -804,12 +804,12 @@ def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, ou
 
     EER = (FAR + FRR) / 2
 
-    print(f"False Acceptance Rate (FAR): {FAR}")
-    print(f"False Rejection Rate (FRR): {FRR}")
-    print(f"Equal Error Rate (EER): {EER}")
+    # print(f"False Acceptance Rate (FAR): {FAR}")
+    # print(f"False Rejection Rate (FRR): {FRR}")
+    # print(f"Equal Error Rate (EER): {EER}")
 
     user_profiles = user_profiles_evaluation
-    distance_measure = "r2"
+    distance_measure = "r234_a23"
     
     genuine_scores = []
     impostor_scores = []
