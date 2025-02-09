@@ -79,7 +79,7 @@ def extract_from_dataset(dataset: str):
         convert_xlsx_to_csvGP([xls1,xls2,xls3], output_csv)
     
 
-def execute_experimentGP(dataset: str):
+def execute_experimentGP(dataset: str,distance_measure: str):
     # original data
     print("Dataset dentro execute_experimentGP:", dataset)  
     extract_from_dataset(dataset)
@@ -91,7 +91,7 @@ def execute_experimentGP(dataset: str):
 
     create_user_profiles(original_set, original_data_profiles)
 
-    y_true, y_scores = experiment(original_data_profiles, original_data_profiles, "original", filter)
+    y_true, y_scores = experiment(original_data_profiles, original_data_profiles, "original", distance_measure ,filter)
 
     return y_true,y_scores
 

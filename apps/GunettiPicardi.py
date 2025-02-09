@@ -767,7 +767,7 @@ def execute(
     return out
 
 # experiment setup and output
-def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, output: str, filter: list = []): 
+def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, output: str, distance_measure: str ,filter: list = []): 
     # open training data set
     with open(path_to_dataset_training, "rb") as fp:
         user_profiles_training = pickle.load(fp)
@@ -809,7 +809,9 @@ def experiment(path_to_dataset_training: str,path_to_dataset_evaluation: str, ou
     # print(f"Equal Error Rate (EER): {EER}")
 
     user_profiles = user_profiles_evaluation
-    distance_measure = "r234_a23"
+
+    if not distance_measure:
+        distance_measure = "r234_a23"
     
     genuine_scores = []
     impostor_scores = []

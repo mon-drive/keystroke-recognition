@@ -62,8 +62,11 @@ def TestBuffaloGP():
     # original data
 
     dataset = request.form.get("selected_dataset")
+    distance_measure = request.form.get("selected_distance")
 
-    y_true,y_scores = execute_experimentGP(dataset)
+    print(distance_measure)
+
+    y_true,y_scores = execute_experimentGP(dataset,distance_measure)
     
     # Compute ROC
     fpr, tpr, thresholds = roc_curve(y_true, y_scores)
@@ -84,7 +87,9 @@ def TestBuffaloGP():
     print(f"FRR: {eer_frr}")
 
     return jsonify({
-        "status": "success"
+        "status": "GP",
+        "far": eer_far,
+        "frr": eer_frr,
     })
 
 # Train & Evaluate GMM on Buffalo Dataset
