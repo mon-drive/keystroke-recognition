@@ -33,7 +33,6 @@ class GMMKeystrokeModel:
         :param s_thresh: Initial threshold for accept/reject (will be tuned).
         :param train_ratio: fraction of data for training (per user)
         :param valid_ratio: fraction of data for validation (per user)
-        :param test_ratio: fraction of data for testing (per user)
         """
         self.M = M
         self.delta = delta
