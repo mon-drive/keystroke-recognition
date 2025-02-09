@@ -30,3 +30,8 @@ This project extracts keystroke data from various datasets, processes it, and ap
    ```bash
    pip install -r requirements.txt
    python app.py
+   ```
+
+### Download datasets:
+
+Download datasets and create a ```dataset``` folder in root.
