@@ -193,6 +193,9 @@ def convert_xlsx_to_csv(input_files, output_file):
     
     # Concatena tutti i DataFrame
     final_df = pd.concat(dataframes, ignore_index=True)
+
+    # Remove rows with any negative values in 'H', 'UD', or 'DD'
+    final_df = final_df[(final_df['H'] >= 0) & (final_df['UD'] >= 0) & (final_df['DD'] >= 0)]
     
     # Salva il CSV
     final_df.to_csv(output_file, index=False)
