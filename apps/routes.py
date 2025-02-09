@@ -127,7 +127,7 @@ def TestGMM():
     elif(dataset == "Buffalo Free Text"):
         process_buffalo_keystrokes(input_path, output_csv, 1)
     elif(dataset == "Aalto"):
-        processAalto("dataset/Aalto/files", output_csv, 10000, 16000)
+        processAalto("dataset/Aalto/files", output_csv, 10000, 13000)
     elif(dataset == "Nanglae-Bhattarakosol"):
         xls1 = "dataset/fullname_userInformation.xlsx"
         xls2 = "dataset/email_userInformation.xlsx"
@@ -139,7 +139,9 @@ def TestGMM():
 
     # 3. Compute EER
     # The EER is where FPR == 1 - TPR. We can approximate with brentq:
-    eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+    interp_func = interp1d(fpr, tpr, bounds_error=False, fill_value=(0.0, 1.0))
+
+    eer = brentq(lambda x: 1. - x - interp_func(x), 0., 1.)
 
     # 4. Plot and display AUC, EER
     roc_auc = auc(fpr, tpr)
