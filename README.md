@@ -36,6 +36,7 @@ This project extracts keystroke data from various datasets, processes it, and ap
 
 Download datasets: 
 - [Aalto](https://userinterfaces.aalto.fi/136Mkeystrokes/)
-- Buffalo 
+- [Buffalo](https://www.buffalo.edu/cubs/research/datasets.html), you need to contact the owners
 - [Nanglae-Bhattarakosol](https://figshare.com/articles/dataset/Keystroke_Dynamics_Data/27135000/1)
+
 Create a ```dataset``` folder in root.
