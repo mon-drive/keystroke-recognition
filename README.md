@@ -34,4 +34,8 @@ This project extracts keystroke data from various datasets, processes it, and ap
 
 ### Download datasets:
 
-Download datasets and create a ```dataset``` folder in root.
+Download datasets: 
+- [Aalto](https://userinterfaces.aalto.fi/136Mkeystrokes/)
+- Buffalo 
+- [Nanglae-Bhattarakosol](https://figshare.com/articles/dataset/Keystroke_Dynamics_Data/27135000/1)
+Create a ```dataset``` folder in root.
